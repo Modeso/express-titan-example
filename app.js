@@ -4,6 +4,7 @@ var express = require('express');
 var routes = require('./routes');
 var api = require('./routes/api');
 path = require('path');
+
 //Express Middleware
 var compression = require('compression');
 var bodyParser = require('body-parser');
@@ -21,6 +22,16 @@ app.set('port', process.env.PORT || 3000);
 app.set('json spaces', 2);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
+
+//Titan Database Connection
+var grex = require('grex');
+var grexOptions = {
+    host: '192.168.99.100',
+    port: 8182,
+    graph: 'graph'
+}
+
+app.set('grex', grex);
 
 //Configure ExpressJS
 app.use(logger('dev'));
@@ -53,6 +64,22 @@ app.get('*', routes.index);
 // port
 app.listen(app.get('port'),  function () {
     console.log('Example server listening on port ' + app.get('port') + ' in ' +app.get('env') + ' mode');
+
+    //test db connection
+    var grex = app.get('grex');
+    var client = grex.createClient(grexOptions);
+    var gremlin = grex.gremlin;
+    var g = grex.g;
+    var query = gremlin();
+    query(g);
+    client.execute(query, function(err, response) {
+        if(err) {
+            console.log(err);
+        } else {
+            console.log("Titan Connected");
+            console.log(response);
+        }
+    })
 });
 
 module.exports = app;
