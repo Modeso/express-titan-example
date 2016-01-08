@@ -34,6 +34,7 @@ var grexOptions = {
 }
 
 app.set('grex', grex);
+app.set('grexOptions', grexOptions);
 
 //Configure ExpressJS
 app.use(logger('dev'));
@@ -53,6 +54,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
+var User = require('./Users/user')(grex, grexOptions);
+
 //Passport configuration
 var oauth = require('./oauth.js');
 passport.use(new TwitterStrategy({
@@ -61,6 +64,9 @@ passport.use(new TwitterStrategy({
         callbackURL: oauth.twitter.callbackUrl
     },
     function(token, tokenSecret, profile, done) {
+
+        User.findOrCreateUsingTwitter(profile, done);
+
         /*
         User.findOrCreate(..., function(err, user) {
             if (err) { return done(err); }
@@ -83,12 +89,24 @@ app.get('/api/name', api.name);
 app.get('/login', passport.authenticate('twitter', { successRedirect: '/',
     failureRedirect: '/login' }));
 
+app.get('/auth/twitter',
+    passport.authenticate('twitter'),
+    function(req, res){});
+
+app.get('/oauth/twitter/callback',
+    passport.authenticate('twitter', { failureRedirect: '/' }),
+    function(req, res) {
+        res.redirect('/');
+    });
+
+
 // port
 app.listen(app.get('port'),  function () {
     console.log('Example server listening on port ' + app.get('port') + ' in ' +app.get('env') + ' mode');
 
     //test db connection
     var grex = app.get('grex');
+    var grexOptions = app.get('grexOptions');
     var client = grex.createClient(grexOptions);
     var gremlin = grex.gremlin;
     var g = grex.g;
