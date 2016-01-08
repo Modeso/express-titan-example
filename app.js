@@ -3,7 +3,9 @@ var fs = require('fs');
 var express = require('express');
 var routes = require('./routes');
 var api = require('./routes/api');
-path = require('path');
+var path = require('path');
+var passport = require('passport');
+var TwitterStrategy = require('passport-twitter').Strategy;
 
 //Express Middleware
 var compression = require('compression');
@@ -48,6 +50,24 @@ app.use(session({
     saveUninitialized: true
 }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize());
+app.use(passport.session());
+
+//Passport configuration
+var oauth = require('./oauth.js');
+passport.use(new TwitterStrategy({
+        consumerKey: oauth.twitter.consumerKey,
+        consumerSecret: oauth.twitter.consumerSecret,
+        callbackURL: oauth.twitter.callbackUrl
+    },
+    function(token, tokenSecret, profile, done) {
+        /*
+        User.findOrCreate(..., function(err, user) {
+            if (err) { return done(err); }
+            done(null, user);
+        });*/
+    }
+));
 
 // routes
 app.get('/', routes.index);
@@ -58,8 +78,10 @@ app.get('/partials/:name', routes.partials);
 app.get('/api/name', api.name);
 
 // redirect all others to the index (HTML5 history)
-app.get('*', routes.index);
+//app.get('*', routes.index);
 
+app.get('/login', passport.authenticate('twitter', { successRedirect: '/',
+    failureRedirect: '/login' }));
 
 // port
 app.listen(app.get('port'),  function () {
