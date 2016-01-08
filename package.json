@@ -30,6 +30,7 @@
         "serve-favicon" : "2.3.0",
         "method-override" : "2.3.5",
         "express-session" : "1.12.1",
-        "errorhandler" : "1.4.2"
+        "errorhandler" : "1.4.2",
+        "jade": "1.11.0"
     }
 }

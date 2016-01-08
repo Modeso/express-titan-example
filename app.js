@@ -2,7 +2,8 @@
 var fs = require('fs');
 var express = require('express');
 var routes = require('./routes');
-
+var api = require('./routes/api');
+path = require('path');
 //Express Middleware
 var compression = require('compression');
 var bodyParser = require('body-parser');
@@ -18,6 +19,8 @@ var app = express();
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('json spaces', 2);
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
 
 //Configure ExpressJS
 app.use(logger('dev'));
@@ -33,10 +36,19 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // routes
 app.get('/', routes.index);
 app.get('/ping', routes.ping);
+app.get('/partials/:name', routes.partials);
+
+// JSON API
+app.get('/api/name', api.name);
+
+// redirect all others to the index (HTML5 history)
+app.get('*', routes.index);
+
 
 // port
 app.listen(app.get('port'),  function () {
