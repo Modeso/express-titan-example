@@ -12,6 +12,7 @@ module.exports = function(grex, grexOptions) {
             client.execute(query, function(err, response) {
                 if(err) {
                     console.log(err);
+                    done();
                 } else {
 
                     console.log(response);
@@ -21,10 +22,11 @@ module.exports = function(grex, grexOptions) {
 
                         //Create User
                         var query = gremlin();
-                        query(g.addVertex({twitterid:profile.id, type: "User"}));
+                        query(g.addVertex({twitterid:profile.id, type: "User", twitterdata: profile}));
                         client.execute(query, function(err, response) {
                            if(err) {
                                console.log(err);
+                               done();
                            } else {
                                console.log(response);
                                done(response.results);
@@ -32,10 +34,24 @@ module.exports = function(grex, grexOptions) {
                         });
                     } else {
                         console.log("user found");
-                        done(response.results);
+                        var query = gremlin();
+                        //Update User
+                        var id = response.results[0]._id;
+                        console.log("id:"+id);
+                        query(g.v(id).setProperty("twitterdata", profile));
+                        client.execute(query, function(err, response) {
+                            if(err) {
+                                console.log(err);
+                                done();
+                            } else {
+                                console.log(response);
+                                done(response.results);
+                            }
+                        });
+
                     }
                 }
-                done();
+
             })
         }
     };
