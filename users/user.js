@@ -1,3 +1,7 @@
+var user = {
+    _id : undefined,
+    name : undefined
+};
 
 module.exports = function(grex, grexOptions) {
     return {
@@ -29,7 +33,11 @@ module.exports = function(grex, grexOptions) {
                                done();
                            } else {
                                console.log(response);
-                               done(response.results);
+                               var user = {
+                                   id : response.results[0]._id,
+                                   name : profile.displayName
+                               }
+                               done(null, user);
                            }
                         });
                     } else {
@@ -45,11 +53,41 @@ module.exports = function(grex, grexOptions) {
                                 done();
                             } else {
                                 console.log(response);
-                                done(response.results);
+                                var user = {
+                                    id : id,
+                                    name : profile.displayName
+                                }
+                                done(null,user);
                             }
                         });
 
                     }
+                }
+
+            })
+        },
+
+        findById: function(id, callback){
+
+            console.log("findById");
+            var client = grex.createClient(grexOptions);
+            var gremlin = grex.gremlin;
+            var g = grex.g;
+            var query = gremlin();
+            query(g.v(id));
+
+            client.execute(query, function(err, response) {
+                if(err) {
+                    console.log(err);
+                    callback(err, null);
+                } else {
+
+                    console.log(response);
+                    var user = {
+                        id : id,
+                        name : response.results[0].twitterdata.displayName
+                    }
+                    callback(err, user);
                 }
 
             })

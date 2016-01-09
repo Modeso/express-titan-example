@@ -3,7 +3,15 @@
  */
 
 exports.name = function (req, res) {
-    res.json({
-        name: 'Bob'
-    });
+
+    if(req.user) {
+        res.json({
+            name: req.user.name
+        });
+    } else {
+        res.json({
+            name: "World"
+        });
+    }
+
 };

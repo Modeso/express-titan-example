@@ -66,12 +66,6 @@ passport.use(new TwitterStrategy({
     function(token, tokenSecret, profile, done) {
 
         User.findOrCreateUsingTwitter(profile, done);
-
-        /*
-        User.findOrCreate(..., function(err, user) {
-            if (err) { return done(err); }
-            done(null, user);
-        });*/
     }
 ));
 
@@ -99,6 +93,19 @@ app.get('/oauth/twitter/callback',
         res.redirect('/');
     });
 
+passport.serializeUser(function(user, done) {
+    console.log("serializeUser");
+    console.log(JSON.stringify(user));
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function (err, user) {
+        console.log("deserialize");
+        console.log(JSON.stringify(user));
+        done(err, user);
+    });
+});
 
 // port
 app.listen(app.get('port'),  function () {
