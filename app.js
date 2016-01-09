@@ -6,6 +6,7 @@ var api = require('./routes/api');
 var path = require('path');
 var passport = require('passport');
 var TwitterStrategy = require('passport-twitter').Strategy;
+var TwitterTokenStrategy = require('passport-twitter-token');
 
 //Express Middleware
 var compression = require('compression');
@@ -56,7 +57,7 @@ app.use(passport.session());
 
 var User = require('./Users/user')(grex, grexOptions);
 
-//Passport configuration
+//Passport configuration via Web
 var oauth = require('./oauth.js');
 passport.use(new TwitterStrategy({
         consumerKey: oauth.twitter.consumerKey,
@@ -66,6 +67,16 @@ passport.use(new TwitterStrategy({
     function(token, tokenSecret, profile, done) {
 
         User.findOrCreateUsingTwitter(profile, done);
+    }
+));
+//Passport configuration via Token
+passport.use(new TwitterTokenStrategy({
+        consumerKey: oauth.twitter.consumerKey,
+        consumerSecret: oauth.twitter.consumerSecret
+    }, function(token, tokenSecret, profile, done) {
+
+        User.findOrCreateUsingTwitter(profile, done);
+
     }
 ));
 
@@ -83,14 +94,18 @@ app.get('/api/name', api.name);
 app.get('/login', passport.authenticate('twitter', { successRedirect: '/',
     failureRedirect: '/login' }));
 
-app.get('/auth/twitter',
-    passport.authenticate('twitter'),
-    function(req, res){});
-
 app.get('/oauth/twitter/callback',
     passport.authenticate('twitter', { failureRedirect: '/' }),
     function(req, res) {
         res.redirect('/');
+    });
+
+//Login with post (eg. from App)
+app.post('/oauth/twitter/token',
+    passport.authenticate('twitter-token'),
+    function (req, res) {
+        // do something with req.user
+        res.send(req.user ? 200 : 401);
     });
 
 passport.serializeUser(function(user, done) {
