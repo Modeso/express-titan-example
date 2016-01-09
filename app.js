@@ -105,7 +105,7 @@ app.post('/oauth/twitter/token',
     passport.authenticate('twitter-token'),
     function (req, res) {
         // do something with req.user
-        res.send(req.user ? 200 : 401);
+        res.sendStatus(req.user ? 200 : 401);
     });
 
 passport.serializeUser(function(user, done) {
@@ -119,6 +119,18 @@ passport.deserializeUser(function(id, done) {
         console.log("deserialize");
         console.log(JSON.stringify(user));
         done(err, user);
+    });
+});
+
+//logout
+app.get('/logout', function (req, res){
+    req.session.destroy(function (err) {
+        res.redirect('/');
+    });
+});
+app.post('/logout', function (req, res){
+    req.session.destroy(function (err) {
+        res.sendStatus(req.user ? 200 : 401);
     });
 });
 
